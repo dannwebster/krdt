@@ -160,7 +160,7 @@ class LWWSetTest {
     }
 
     @Test
-    fun shouldRemoveTiesWhenBiasedTowardsRemoving() {
+    fun shouldKeepRemoveWhenAddAndRemoveAreTiedAndBiasedTowardsRemoving() {
         // given
         val a = LWWSet<String>(clock = clock, bias = Bias.TOWARDS_REMOVING)
         val b = LWWSet<String>(clock = clock, bias = Bias.TOWARDS_REMOVING)
@@ -180,7 +180,7 @@ class LWWSetTest {
     }
 
     @Test
-    fun shouldKeepTiesWhenBiasedTowardsAdding() {
+    fun shouldKeepAddWhenAddAndRemoveAreTiedAndBiasedTowardsAdding() {
         // given
         val a = LWWSet<String>(clock = clock, bias = Bias.TOWARDS_ADDING)
         val b = LWWSet<String>(clock = clock, bias = Bias.TOWARDS_ADDING)
@@ -194,14 +194,8 @@ class LWWSetTest {
         b.remove("a")
         b.add("a")
 
-        println("a: ${a.payload}")
-        println("b: ${b.payload}")
 
         val subject = a.merge(b)
-        println("--------")
-        println("a: ${a.payload}")
-        println("b: ${b.payload}")
-        println("subject: ${subject.payload}")
 
         // then
         assertEquals(mutableSetOf<String>("a"), subject.value())
@@ -209,7 +203,7 @@ class LWWSetTest {
 
 
     @Test
-    fun shouldHonorBiasFromMergeReceiverKeepTiesWhenBiasesDiffer() {
+    fun shouldHonorBiasFromMergeReceiverAndNotMergeArgumentWhenBiasesDiffer() {
         // given
         val a = LWWSet<String>(clock = clock, bias = Bias.TOWARDS_ADDING)
         val b = LWWSet<String>(clock = clock, bias = Bias.TOWARDS_REMOVING)
@@ -223,14 +217,7 @@ class LWWSetTest {
         b.remove("a")
         b.add("a")
 
-        println("a: ${a.payload}")
-        println("b: ${b.payload}")
-
         val subject = a.merge(b)
-        println("--------")
-        println("a: ${a.payload}")
-        println("b: ${b.payload}")
-        println("subject: ${subject.payload}")
 
         // then
         assertEquals(mutableSetOf<String>("a"), subject.value())

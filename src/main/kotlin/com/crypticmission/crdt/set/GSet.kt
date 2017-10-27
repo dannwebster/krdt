@@ -6,10 +6,10 @@ import java.util.function.Predicate
 
 /**
  */
-class GSet<E>(
+data class GSet<E>(
         override val clientId: String = randomClientId(),
         override val payload: MutableSet<E> = mutableSetOf<E>()
-) : CrdtBase<GSet<E>, Set<E>, Set<E>>, MutableSet<E> by payload {
+) : CrdtBaseSet<GSet<E>, Set<E>, E>, MutableSet<E> by payload {
 
     override fun merge(clientId: String, other: GSet<E>): GSet<E> = GSet(
             clientId = clientId,
