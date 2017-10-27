@@ -1,8 +1,10 @@
 group 'com.crypticmission'
 version '1.0-SNAPSHOT'
 
+
 buildscript {
     ext.kotlin_version = '1.1.51'
+    ext.junit_version = '4.12'
 
     repositories {
         mavenCentral()
@@ -20,6 +22,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    testCompile "junit:junit:${junit_version}"
 }
 
 compileKotlin {
