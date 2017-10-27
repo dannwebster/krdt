@@ -15,7 +15,6 @@ data class TwoPhasePayload<E>(val adds: GSet<E>, val removes: GSet<E>) {
 }
 
 interface TwoPhaseSet<E> : CrdtBaseSet<TwoPhaseSet<E>, TwoPhasePayload<E>, E> {
-    abstract val valueCalculationCount: Int
 
     companion object {
         fun <E> fromSet(clientId: String = randomClientId(), set: Set<E>) = new(
@@ -33,61 +32,9 @@ interface TwoPhaseSet<E> : CrdtBaseSet<TwoPhaseSet<E>, TwoPhasePayload<E>, E> {
     }
 }
 
-data class CachedTwoPhaseSet<E>(val delegate: TwoPhaseSet<E>) : TwoPhaseSet<E> by delegate {
-    var cachedValue = newCache()
-    var cacheInvalid = false;
-
-    override var valueCalculationCount = delegate.valueCalculationCount
-        get() = delegate.valueCalculationCount
-
-    override fun value(): MutableSet<E> {
-        if (cacheInvalid) {
-            cachedValue = newCache()
-            cacheInvalid = false
-        }
-        return cachedValue
-    }
-
-    private fun invalidateCache() : Unit { cacheInvalid = true }
-    private fun newCache() = delegate.value().toMutableSet()
-
+class CachedTwoPhaseSet<E>(_delegate: TwoPhaseSet<E>) : CachedCrdtBaseSet<TwoPhaseSet<E>, TwoPhasePayload<E>, E>(_delegate), TwoPhaseSet<E> {
     override fun merge(clientId: String, other: TwoPhaseSet<E>): TwoPhaseSet<E> =
-            CachedTwoPhaseSet<E>(this.merge(clientId, other))
-
-    override fun add(element: E): Boolean {
-        val added = delegate.add(element)
-        invalidateCache()
-        return added
-    }
-
-    override fun addAll(elements: Collection<E>): Boolean {
-        val removed = delegate.addAll(elements)
-        invalidateCache()
-        return removed
-    }
-
-    override fun clear() {
-        delegate.clear()
-        invalidateCache()
-    }
-
-    override fun remove(element: E): Boolean {
-        val removed = delegate.remove(element)
-        invalidateCache()
-        return removed
-    }
-
-    override fun removeAll(elements: Collection<E>): Boolean {
-        val removed = delegate.removeAll(elements)
-        invalidateCache()
-        return removed
-    }
-
-    override fun retainAll(elements: Collection<E>): Boolean {
-        val retained = delegate.retainAll(elements)
-        invalidateCache()
-        return retained
-    }
+        CachedTwoPhaseSet<E>(delegate.merge(clientId, other))
 }
 
 data class UncachedTwoPhaseSet<E>(
@@ -95,15 +42,7 @@ data class UncachedTwoPhaseSet<E>(
         override val payload: TwoPhasePayload<E> = TwoPhasePayload.new()
 ) : TwoPhaseSet<E> {
 
-    private var _valueCalculationCount = 0
-
-    override val valueCalculationCount: Int
-        get() = _valueCalculationCount
-
     override fun value(): MutableSet<E> {
-        _valueCalculationCount++
-//        println("**** calculating value() #${valueCalculationCount}")
-//        println("\t ${Exception().stackTrace.filter { it.toString().contains("CachedTwoPhaseSet")}.joinToString("\n\t")}")
         return (payload.adds.value() - payload.removes.value()).toMutableSet()
     }
 
@@ -123,7 +62,7 @@ data class UncachedTwoPhaseSet<E>(
 
     override fun addAll(elements: Collection<E>): Boolean = elements
             .map { element -> add(element) }
-            .all { added -> added }
+            .any { added -> added }
 
     override fun clear() = payload.clear()
 
@@ -137,13 +76,9 @@ data class UncachedTwoPhaseSet<E>(
 
     override fun removeAll(elements: Collection<E>): Boolean = elements
             .map { element -> remove(element) }
-            .all { removed -> removed }
+            .any { removed -> removed }
 
-    override fun retainAll(elements: Collection<E>): Boolean {
-        val allRetained = elements.all { contains(it) }
-        removeAll(this.value() - elements)
-        return allRetained
-    }
+    override fun retainAll(elements: Collection<E>): Boolean = removeAll(this.value() - elements)
 
     override val size: Int
         get() = this.value().size

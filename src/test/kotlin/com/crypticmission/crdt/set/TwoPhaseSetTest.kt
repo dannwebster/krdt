@@ -7,7 +7,8 @@ import org.junit.Test
  */
 class TwoPhaseSetTest {
 
-    fun <E> TwoPhaseSet<E>.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation() = this.valueCalculationCount
+    fun <E> TwoPhaseSet<E>.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation() =
+            (this as CachedCrdtBaseSet<*, *, *>).valueCalculationCount
 
     @Test
     fun shouldBeEmptyWhenCreated() {
@@ -77,7 +78,9 @@ class TwoPhaseSetTest {
 
         val subject = a.merge(b)
 
-
+        println("a " + a)
+        println("b: " + b)
+        println("subject: " + subject)
         // then
         assertEquals(mutableSetOf<String>("a", "b"), subject.value())
 
@@ -178,9 +181,9 @@ class TwoPhaseSetTest {
         assertEquals(false, added2)
         assertEquals(false, added3)
         assertEquals(mutableSetOf<String>(), subject.value())
-        assertEquals(1, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
         assertEquals(1, a.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
         assertEquals(1, b.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
+        assertEquals(2, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
     }
 
     @Test
@@ -191,10 +194,12 @@ class TwoPhaseSetTest {
         // when
         val allAdded1 = subject.addAll(setOf("a"))
         val allAdded2 = subject.addAll(setOf("a", "b", "c"))
+        val allAdded3 = subject.addAll(setOf("a", "b", "c"))
 
         // then
         assertEquals(true, allAdded1)
-        assertEquals(false, allAdded2)
+        assertEquals(true, allAdded2)
+        assertEquals(false, allAdded3)
         assertEquals(mutableSetOf<String>("a", "b", "c"), subject.value())
         assertEquals(2, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
     }
@@ -210,7 +215,7 @@ class TwoPhaseSetTest {
 
         // then
         assertEquals(true, allRemoved1)
-        assertEquals(false, allRemoved2)
+        assertEquals(true, allRemoved2)
         assertEquals(mutableSetOf<String>("a"), subject.value())
         assertEquals(2, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
     }
@@ -224,15 +229,17 @@ class TwoPhaseSetTest {
 
         // when
         val allRetained1 = subject.retainAll(setOf("a", "b"))
-        assertEquals(2, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
+        assertEquals(1, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
         val allRetained2 = subject.retainAll(setOf("a", "c"))
-        assertEquals(3, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
+        assertEquals(1, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
+        val allRetained3 = subject.retainAll(setOf("a", "b"))
 
         // then
         assertEquals(true, allRetained1)
-        assertEquals(false, allRetained2)
+        assertEquals(true, allRetained2)
+        assertEquals(false, allRetained3)
         assertEquals(mutableSetOf<String>("a"), subject.value())
-        assertEquals(4, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
+        assertEquals(2, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
     }
 
 }
