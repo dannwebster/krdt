@@ -1,4 +1,4 @@
-package com.crypticmission.crdt
+package com.crypticmission.crdt.counter
 
 import org.junit.Assert.*
 import org.junit.Test

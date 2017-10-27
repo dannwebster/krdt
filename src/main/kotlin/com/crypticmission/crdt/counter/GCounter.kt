@@ -1,4 +1,9 @@
-package com.crypticmission.crdt
+package com.crypticmission.crdt.counter
+
+import com.crypticmission.crdt.Counter
+import com.crypticmission.crdt.CrdtBase
+import com.crypticmission.crdt.merge
+import com.crypticmission.crdt.randomClientId
 
 /**
  */
