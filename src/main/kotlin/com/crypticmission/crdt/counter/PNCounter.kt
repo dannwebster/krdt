@@ -5,15 +5,15 @@ import com.crypticmission.crdt.CrdtBase
 import com.crypticmission.crdt.randomClientId
 
 
-data class PN(val p: GCounter, val n: GCounter) {
+data class PNPayload(val p: GCounter, val n: GCounter) {
     companion object {
-        fun new() = PN(GCounter(), GCounter())
+        fun new() = PNPayload(GCounter(), GCounter())
     }
 }
 /**
  */
 data class PNCounter(override val clientId: String = randomClientId(),
-                     override val payload: PN = PN.new()) : CrdtBase<PNCounter, PN, Int>, Counter {
+                     override val payload: PNPayload = PNPayload.new()) : CrdtBase<PNCounter, PNPayload, Int>, Counter {
     override fun value(): Int = payload.p.value() - payload.n.value()
 
 
@@ -22,7 +22,7 @@ data class PNCounter(override val clientId: String = randomClientId(),
 
     override fun merge(clientId: String, other: PNCounter): PNCounter = PNCounter(
             clientId = clientId,
-            payload = PN(
+            payload = PNPayload(
                     p = this.payload.p.merge(other.payload.p),
                     n = this.payload.n.merge(other.payload.n)
             )

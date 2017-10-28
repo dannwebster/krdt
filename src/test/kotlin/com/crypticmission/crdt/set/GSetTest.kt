@@ -35,26 +35,44 @@ class GSetTest {
 
     }
 
-    fun requireFailure(function: () -> Unit) {
-        try {
-            function()
-            fail("this should throw an exception")
-        } catch (e: Exception ) {
-            when (e) {
-                is IllegalAccessException -> assertEquals("com.crypticmission.crdt.set.GSet is a grow-only set", e.message)
-            }
-        }
-    }
-
-    @Test
+    @Test(expected = IllegalAccessException::class)
     fun shouldFailWhenTryingToRemove() {
         // given
         val subject = GSet("a", mutableSetOf("a"))
 
-        // then
-        requireFailure { -> subject.remove("a") }
-        requireFailure { -> subject.removeAll(mutableSetOf("a")) }
-        requireFailure { -> subject.removeIf { it == "a" } }
+        // when
+        subject.remove("a")
+    }
+    @Test(expected = IllegalAccessException::class)
+    fun shouldFailWhenTryingToRemoveAll() {
+        // given
+        val subject = GSet("a", mutableSetOf("a"))
 
+        // when
+        subject.removeAll(mutableSetOf("a"))
+    }
+
+    @Test(expected = IllegalAccessException::class)
+    fun shouldFailWhenTryingToRemoveAIf() {
+        // given
+        val subject = GSet("a", mutableSetOf("a"))
+        subject.removeIf { it == "a" }
+    }
+
+    @Test(expected = IllegalAccessException::class)
+    fun shouldFailWhenTryingToClear() {
+        // given
+        val subject = GSet("a", mutableSetOf("a"))
+        subject.clear()
+    }
+
+    @Test
+    fun shouldBehaveLikeANormalSetWhenCleared() {
+        // given
+        val subject = GSet(clientId = "foo", payload = mutableSetOf("a", "b", "c"))
+
+        assertEquals("foo", subject.clientId)
+        assertEquals(3, subject.size)
+        assertEquals(true, subject.iterator().hasNext())
     }
 }

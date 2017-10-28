@@ -39,11 +39,6 @@ data class LWWPayload<E>(val adds: TimestampedSet<E>, val removes: TimestampedSe
         fun <T> fromSet(set: Set<T>, clock: Clock = Clock.systemUTC()) =
                 LWWPayload<T>(toTimestamptedSet(set, clock), mutableMapOf<T, Instant>())
     }
-
-    fun clear() {
-        adds.clear()
-        removes.clear()
-    }
 }
 
 interface LWWSet<E> : CrdtBaseSet<LWWSet<E>, LWWPayload<E>, E> {
@@ -115,7 +110,9 @@ class UncachedLwwSet<E>(
             .map { element -> add(element) }
             .any { added -> added }
 
-    override fun clear() = payload.clear()
+    override fun clear() {
+      removeAll(payload.adds.keys)
+    }
 
     override fun iterator(): MutableIterator<E> = value().iterator()
 
@@ -131,13 +128,14 @@ class UncachedLwwSet<E>(
 
     override fun retainAll(elements: Collection<E>): Boolean = removeAll(this.value() - elements)
 
-    override val size: Int = value().size
+    override val size: Int
+        get() = value().size
 
     override fun contains(element: E): Boolean = addedAndNotRemoved(element) || addedMoreRecentlyThanRemoved(element)
 
     private fun addedMoreRecentlyThanRemoved(element: E) = with(payload) {
-        adds.containsKey(element) &&
                 removes.containsKey(element) &&
+                adds.containsKey(element) &&
                 bias.keepWhen(adds.getOrDefault(element, Instant.MIN), removes.get(element))
     }
 

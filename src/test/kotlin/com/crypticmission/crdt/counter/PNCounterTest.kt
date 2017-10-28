@@ -1,5 +1,8 @@
 package com.crypticmission.crdt.counter
 
+import com.crypticmission.crdt.set.DEFAULT_VERSIONER
+import com.crypticmission.crdt.set.ORPayload
+import com.crypticmission.crdt.set.toVersionedSet
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -100,5 +103,32 @@ class PNCounterTest {
 
         // then
         assertEquals(4, subject.value())
+    }
+
+    @Test
+    fun shouldHandleAllDataClassMethods() {
+        // given
+        val subject = PNCounter("a", PNPayload.new())
+        val copy = subject.copy()
+
+        val otherA1 = PNCounter("a")
+        otherA1.increment()
+
+        val otherA2 = PNCounter("a")
+        otherA2.decrement()
+
+        val otherB = PNCounter("b")
+
+        // when
+        assertFalse(subject.equals(otherA1))
+        assertFalse(subject.equals(otherA2))
+        assertFalse(subject.equals(otherB))
+        assertFalse(subject.equals(null))
+        assertFalse(subject.equals("foo"))
+        assertEquals(subject, copy)
+        assertEquals(subject.hashCode(), copy.hashCode())
+        assertEquals(subject.toString(), copy.toString())
+        assertEquals(subject.component1(), copy.component1())
+        assertEquals(subject.component2(), copy.component2())
     }
 }

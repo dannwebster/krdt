@@ -301,4 +301,73 @@ class ORSetTest {
         assertEquals(mutableSetOf<String>("a"), subject.value())
         assertEquals(2, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
     }
+
+    @Test
+    fun shouldCorrectlyDetermineIfSomethingIsContainedWhenUsedInAnyCase() {
+        // given
+        val subject = ORSet.fromSet(set = setOf("a"))
+        assertEquals(true, subject.contains("a"))
+
+        // when
+        subject.remove("a")
+        assertEquals(false, subject.contains("a"))
+
+        // then
+        subject.add("a")
+        assertEquals(true, subject.contains("a"))
+
+    }
+
+    @Test
+    fun shouldBehaveLikeANormalSetWhenCleared() {
+        // given
+        val subject = ORSet.fromSet(clientId = "foo", set = setOf("a", "b", "c"))
+
+        assertEquals("foo", subject.clientId)
+        assertEquals(1, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
+        assertEquals(true, subject.iterator().hasNext())
+        assertEquals(true, subject.containsAll(setOf("a", "b", "c")))
+        assertEquals(3, subject.size)
+        assertEquals(1, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
+
+        // when
+        subject.clear()
+
+        // then
+        assertEquals(false, subject.containsAll(setOf("a", "b", "c")))
+        assertEquals(true, subject.isEmpty())
+        assertEquals(0, subject.size)
+        assertEquals(false, subject.iterator().hasNext())
+        assertEquals(1, subject.valueCalculatedOnceAtCreationAndOnceWhenGettingAfterMutation())
+    }
+
+
+    @Test
+    fun shouldHandleAllPayloadDataClassMethods() {
+        // given
+        val subject = ORPayload(
+                toVersionedSet(mutableSetOf("a"), DEFAULT_VERSIONER),
+                toVersionedSet(mutableSetOf("b"), DEFAULT_VERSIONER))
+
+        val copy = subject.copy()
+
+        val otherA = ORPayload(
+                toVersionedSet(mutableSetOf("a"), DEFAULT_VERSIONER),
+                toVersionedSet(mutableSetOf("a"), DEFAULT_VERSIONER))
+
+        val otherB = ORPayload(
+                toVersionedSet(mutableSetOf("a"), DEFAULT_VERSIONER),
+                toVersionedSet(mutableSetOf("b"), DEFAULT_VERSIONER))
+
+        // when
+        assertFalse(subject.equals(otherA))
+        assertFalse(subject.equals(otherB))
+        assertFalse(subject.equals(null))
+        assertFalse(subject.equals("foo"))
+        assertEquals(subject, copy)
+        assertEquals(subject.hashCode(), copy.hashCode())
+        assertEquals(subject.toString(), copy.toString())
+        assertEquals(subject.component1(), copy.component1())
+        assertEquals(subject.component2(), copy.component2())
+    }
 }

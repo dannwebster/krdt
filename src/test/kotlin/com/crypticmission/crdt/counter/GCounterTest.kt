@@ -1,5 +1,6 @@
 package com.crypticmission.crdt.counter
 
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -99,5 +100,29 @@ class GCounterTest {
         // then
         assertEquals(mutableMapOf("a" to 2, "b" to 5, "c" to 1), subject.payload)
         assertEquals(8, subject.value())
+    }
+
+
+    @Test
+    fun shouldHandleAllDataClassMethods() {
+        // given
+        val subject = GCounter("a", mutableMapOf())
+        val copy = subject.copy()
+
+        val otherA = GCounter("a")
+        otherA.increment()
+
+        val otherB = GCounter("b")
+
+        // when
+        Assert.assertFalse(subject.equals(otherA))
+        Assert.assertFalse(subject.equals(otherB))
+        Assert.assertFalse(subject.equals(null))
+        Assert.assertFalse(subject.equals("foo"))
+        assertEquals(subject, copy)
+        assertEquals(subject.hashCode(), copy.hashCode())
+        assertEquals(subject.toString(), copy.toString())
+        assertEquals(subject.component1(), copy.component1())
+        assertEquals(subject.component2(), copy.component2())
     }
 }

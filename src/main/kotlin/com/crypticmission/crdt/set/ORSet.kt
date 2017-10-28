@@ -36,11 +36,6 @@ data class ORPayload<E>(val adds: VersionedSet<E>, val removes: VersionedSet<E>)
         fun <T> fromSet(set: Set<T>, versioner: Versioner = DEFAULT_VERSIONER) =
                 ORPayload<T>(toVersionedSet(set, versioner), versionedSet())
     }
-
-    fun clear() {
-        adds.clear()
-        removes.clear()
-    }
 }
 
 interface ORSet<E> : CrdtBaseSet<ORSet<E>, ORPayload<E>, E> {
@@ -71,8 +66,6 @@ interface ORSet<E> : CrdtBaseSet<ORSet<E>, ORPayload<E>, E> {
 class CachedOrSet<E>(_delegate: ORSet<E>) : CachedCrdtBaseSet<ORSet<E>, ORPayload<E>, E>(_delegate), ORSet<E> {
     override fun merge(clientId: String, other: ORSet<E>): ORSet<E> = CachedOrSet(delegate.merge(other))
 }
-
-fun <E> Set<E>.disjoint(other: Set<E>) = this.intersect(other)
 
 /**
  * Last Write Wins
@@ -109,7 +102,9 @@ class UncachedOrSet<E>(
             .map { element -> add(element) }
             .any { added -> added }
 
-    override fun clear() = payload.clear()
+    override fun clear() {
+      removeAll(payload.adds.keys)
+    }
 
     override fun iterator(): MutableIterator<E> = value().iterator()
 
@@ -125,7 +120,8 @@ class UncachedOrSet<E>(
 
     override fun retainAll(elements: Collection<E>): Boolean = removeAll(this.value() - elements)
 
-    override val size: Int = value().size
+    override val size: Int
+        get() = value().size
 
     override fun contains(element: E): Boolean = addedAndNotRemoved(element) || moreAddsThanRemoves(element)
 

@@ -18,9 +18,9 @@ interface Counter {
     fun increment()
 }
 
-var RANDOM = SecureRandom.getInstanceStrong()
-var MASK = 0x000000FF
-var SHIFTS = arrayOf<Int>(24, 16, 8, 0)
+private val RANDOM = SecureRandom.getInstanceStrong()
+private val MASK = 0x000000FF
+private val SHIFTS = arrayOf<Int>(24, 16, 8, 0)
 
 fun randomClientId()  = "krdt_" + Base64.encode(randomInt().toByteArray())
 

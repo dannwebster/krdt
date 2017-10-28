@@ -8,10 +8,6 @@ data class TwoPhasePayload<E>(val adds: GSet<E>, val removes: GSet<E>) {
         fun <E> new() = TwoPhasePayload<E>(adds = GSet<E>(), removes = GSet<E>())
         fun <E> fromSet(set: Set<E>) = TwoPhasePayload<E>(GSet<E>(payload = set.toMutableSet()), GSet<E>())
     }
-    fun clear() {
-        adds.clear()
-        removes.clear()
-    }
 }
 
 interface TwoPhaseSet<E> : CrdtBaseSet<TwoPhaseSet<E>, TwoPhasePayload<E>, E> {
@@ -26,9 +22,6 @@ interface TwoPhaseSet<E> : CrdtBaseSet<TwoPhaseSet<E>, TwoPhasePayload<E>, E> {
                 clientId: String = randomClientId(),
                 payload: TwoPhasePayload<E> = TwoPhasePayload.new()
         ) : TwoPhaseSet<E> = CachedTwoPhaseSet<E>(UncachedTwoPhaseSet(clientId = clientId, payload = payload))
-
-        fun <E> copy(from: TwoPhaseSet<E>) : TwoPhaseSet<E> =
-                CachedTwoPhaseSet<E>(UncachedTwoPhaseSet(from.clientId, from.payload))
     }
 }
 
@@ -37,9 +30,9 @@ class CachedTwoPhaseSet<E>(_delegate: TwoPhaseSet<E>) : CachedCrdtBaseSet<TwoPha
         CachedTwoPhaseSet<E>(delegate.merge(clientId, other))
 }
 
-data class UncachedTwoPhaseSet<E>(
-        override val clientId: String = randomClientId(),
-        override val payload: TwoPhasePayload<E> = TwoPhasePayload.new()
+class UncachedTwoPhaseSet<E>(
+        override val clientId: String,
+        override val payload: TwoPhasePayload<E>
 ) : TwoPhaseSet<E> {
 
     override fun value(): MutableSet<E> {
@@ -64,7 +57,9 @@ data class UncachedTwoPhaseSet<E>(
             .map { element -> add(element) }
             .any { added -> added }
 
-    override fun clear() = payload.clear()
+    override fun clear() {
+        removeAll(payload.adds)
+    }
 
     override fun iterator(): MutableIterator<E> = value().iterator()
 
@@ -84,10 +79,6 @@ data class UncachedTwoPhaseSet<E>(
         get() = this.value().size
 
     override fun contains(element: E): Boolean = payload.adds.contains(element) && !payload.removes.contains(element)
-
-    fun containsNone(elements: Collection<E>): Boolean = elements
-            .map { element -> !contains(element) }
-            .all { contained -> contained }
 
     override fun containsAll(elements: Collection<E>): Boolean = elements
             .map { element -> contains(element) }
