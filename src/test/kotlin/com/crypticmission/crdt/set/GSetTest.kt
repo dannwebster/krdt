@@ -2,6 +2,7 @@ package com.crypticmission.crdt.set
 
 import org.junit.Assert.*
 import org.junit.Test
+import java.time.Clock
 
 /**
  */
@@ -67,12 +68,41 @@ class GSetTest {
     }
 
     @Test
-    fun shouldBehaveLikeANormalSetWhenCleared() {
+    fun shouldBehaveLikeANormalSet() {
         // given
         val subject = GSet(clientId = "foo", payload = mutableSetOf("a", "b", "c"))
 
+        subject.addAll(setOf("d", "e"))
+
         assertEquals("foo", subject.clientId)
-        assertEquals(3, subject.size)
+        assertEquals(true, subject.containsAll(setOf("a", "b", "c")))
+        assertEquals(5, subject.toTypedArray().size)
+        assertEquals(5, subject.size)
         assertEquals(true, subject.iterator().hasNext())
+
+        assertEquals(false, subject.isEmpty())
+
+    }
+
+    @Test
+    fun shouldHandleAllPayloadDataClassMethods() {
+        // given
+        val subject = GSet("foo", mutableSetOf("a"))
+
+        val copy = subject.copy()
+
+        val otherA = GSet("a", mutableSetOf("a"))
+        val otherB = GSet("b", mutableSetOf("a"))
+
+        // when
+        assertFalse(subject.equals(otherA))
+        assertFalse(subject.equals(otherB))
+        assertFalse(subject.equals(null))
+        assertFalse(subject.equals("foo"))
+        assertEquals(subject, copy)
+        assertEquals(subject.hashCode(), copy.hashCode())
+        assertEquals(subject.toString(), copy.toString())
+        assertEquals(subject.component1(), copy.component1())
+        assertEquals(subject.component2(), copy.component2())
     }
 }

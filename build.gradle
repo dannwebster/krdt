@@ -49,4 +49,25 @@ jacocoTestReport {
         })
     }
 }
-test.finalizedBy(project.tasks.jacocoTestReport)
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'INSTRUCTION'
+                minimum = 0.93
+            }
+            limit {
+                counter = 'LINE'
+                minimum = 0.97
+            }
+            limit {
+                counter = 'BRANCH'
+                minimum = 0.81
+            }
+        }
+    }
+}
+test.finalizedBy(
+        project.tasks.jacocoTestReport,
+        project.tasks.jacocoTestCoverageVerification
+)

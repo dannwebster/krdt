@@ -24,6 +24,8 @@ data class GSet<E>(
 
     override fun removeIf(filter: Predicate<in E>): Boolean = growOnly()
 
+    override fun retainAll(elements: Collection<E>): Boolean = growOnly()
+
     override fun clear(): Unit = growOnly()
 
     private fun growOnly() : Nothing = throw IllegalAccessException("${this.javaClass.name} is a grow-only set")
